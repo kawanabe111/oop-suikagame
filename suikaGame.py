@@ -8,7 +8,7 @@ FPS = 100 #フレームレート
 
 #色の定義
 BLACK = (0, 0, 0)
-WHEAT = (245, 222, 179)
+BG = (245, 222, 179)
 WHITE = (255, 255, 255)
 color_01 = (255,   0,   0)
 color_02 = (255, 100, 100)
@@ -37,31 +37,42 @@ radius_11 = 60
 
 
 #pygame初期化
-def initialize_pygame(disp_size):
+def init_pygame(disp_size):
     pygame.init()
     display = pygame.display.set_mode(disp_size)
     clock = pygame.time.Clock()
     return display, clock
 
 #pymunk初期化
-def initialize_pymunk(gravity=(0, -1000)):
+def init_pymunk(gravity=(0, -1000)):
     space = pymunk.Space()
     space.gravity = gravity
     return space
 
 #初期化実行
-display, clock = initialize_pygame(disp_size)
-space = initialize_pymunk()
+display, clock = init_pygame(disp_size)
+space = init_pymunk()
 
 #座標変換用メソッド(pygameの原点は左上でpymunkの原点は左下)
-def convert_cordinates(point):
+def coordinate_trans(point):
     return point[0], disp_size[1] - point[1]
 
 def draw_title():
+    #フォントの設定
     font = pygame.font.SysFont(None, 60)
+
+    #タイトルテキストの作成
     title_text = font.render("SUIKA GAME", True, (255, 255, 255))
-    title_rect = title_text.get_rect(center=(disp_size[1] / 2, disp_size[1] / 2))
+    title_rect = title_text.get_rect(center=(disp_size[0] / 2, disp_size[1] / 2))
+
+    #説明テキストの作成
+    sub_font = pygame.font.SysFont(None, 40)
+    sub_text = sub_font.render("push space key", True, (255, 255, 255))
+    sub_rect = sub_text.get_rect(center=(disp_size[0] / 2, disp_size[1] / 2 + 60))
+
+    #テキストの表示
     display.blit(title_text, title_rect)
+    display.blit(sub_text, sub_rect)
 
 
 class Ball(object):
@@ -75,16 +86,16 @@ class Ball(object):
         self.shape.density = 1 #密度
         self.shape.elasticity = 0.5 #弾性
         self.shape.friction = 0.5 #摩擦係数
-        space.add(self.body, self.shape) #spaceという物理空間に
+        space.add(self.body, self.shape) #spaceという物理空間に追加
     def draw(self):
         pygame.draw.circle(
             display,
             self.color,
-            convert_cordinates(self.body.position),
+            coordinate_trans(self.body.position),
             self.shape.radius
         )
-
-class Ball01(Ball):
+#Ballのサブクラス，コンストラクタで半径と色を変えるだけ
+class Ball01(Ball): 
     def __init__(self, x, y):
         super().__init__(x, y, color_01, radius_01, 10, 1)
         pass
@@ -139,37 +150,111 @@ class Ball11(Ball):
         super().__init__(x, y, color_11, radius_11, 60, 11)
         pass
 
+class Field():
+    def __init__(self, tlx, tly, brx, bry):
+        self.tlx = tlx  #左上のx座標
+        self.tly = tly  #左上のy座標
+        self.brx = brx  #右下のx座標
+        self.bry = bry  #右下のy座標
+        
+        self.field_width = int(brx - tlx)  #フィールドの幅
+        self.step = 7  #点線の間隔
+        self.line_width = 3  #線の幅
+        
+        #右線の開始点と終了点
+        self.rl_start, self.rl_stop = (brx, tly), (brx, bry)
+        
+        #下線の開始点と終了点
+        self.bl_start, self.bl_stop = (tlx, bry), (brx, bry)
+        
+        #左線の開始点と終了点
+        self.ll_start, self.ll_stop = (tlx, tly), (tlx, bry)
+        
+        #pymunkを使って境界線を作成(描画じゃなくて物理的な判定みたいな感じ)
+        self.create_line(self.rl_start, self.rl_stop)  # 右の境界線
+        self.create_line(self.bl_start, self.bl_stop)  # 下の境界線
+        self.create_line(self.ll_start, self.ll_stop)  # 左の境界線
+
+    #上部の点線を描画するメソッド
+    def draw(self):
+        for i in range(0, self.field_width, self.step):
+            if(i % (self.step * 2) == 0):
+                pygame.draw.line(
+                    display, 
+                    BLACK,  
+                    coordinate_trans((self.tlx+i, self.tly)),  #開始点
+                    coordinate_trans((self.tlx+i+self.step, self.tly)),  #終了点
+                    self.line_width  #線の幅設定
+                )
+        #右の境界線を描画
+        pygame.draw.line(
+            display,
+            BLACK,
+            coordinate_trans(self.rl_start),
+            coordinate_trans(self.rl_stop),
+            self.line_width
+        )
+        #下の境界線を描画
+        pygame.draw.line(
+            display,
+            BLACK,
+            coordinate_trans(self.bl_start),
+            coordinate_trans(self.bl_stop),
+            self.line_width
+        )
+        #左の境界線を描画
+        pygame.draw.line(
+            display,
+            BLACK,
+            coordinate_trans(self.ll_start),
+            coordinate_trans(self.ll_stop),
+            self.line_width
+        )
+
+    def create_line(self, start, stop):
+        body = pymunk.Body(body_type=pymunk.Body.STATIC)  
+        shape = pymunk.Segment(body, start, stop, self.line_width)
+        shape.elasticity = 0.75  #弾性
+        shape.friction = 0.9  #摩擦
+        space.add(shape, body)  #スペースに追加
+
+#ゲーム実行メソッド(main)
 def game():
     running = True
     while running: #タイトル画面
         
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                running = False
+                pygame.quit()
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     running = False
             
 
-        # 画面のクリア
-        display.fill(WHEAT)
+        #バックグラウンドの色を設定
+        display.fill(color_11)
 
-        # タイトルを描画
+        #タイトルを描画
         draw_title()
 
-        # 画面の更新
+        #画面の更新
         pygame.display.flip()
 
-    # Ball
+    #フィールドの定数
+    tlx, tly = 250, 450 #左上のxと左上のy
+    brx, bry = 550, 100
+    field = Field(tlx, tly, brx, bry) #フィールドのインスタンス
+
+    #フィールド上にあるBallを納める
     balls = []
 
-    # Game Start
+    #ゲーム開始
     while(True):
         for event in pygame.event.get():
             if(event.type == pygame.QUIT):
                 return
             if(event.type == pygame.MOUSEBUTTONDOWN):
-                x, y = convert_cordinates(event.pos)
+                x, y = coordinate_trans(event.pos)
                 r = random.randint(1, 11)
                 if(r == 1):
                     ball = Ball01(x, y)
@@ -194,14 +279,16 @@ def game():
                 elif(r == 11):
                     ball = Ball11(x, y)
                 balls.append(ball)
-        # Fiil background
-        display.fill(WHEAT)
+        #背景の色
+        display.fill(BG)
+        #枠を描画
+        field.draw()
 
-        # Draw Ball
+        #フィールドのBallを描画
         for ball in balls:
             ball.draw()
 
-        # Display Update
+        #画面更新
         pygame.display.update()
         clock.tick(FPS)
         space.step(1/FPS)
