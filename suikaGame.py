@@ -57,6 +57,13 @@ space = init_pymunk()
 def coordinate_trans(point):
     return point[0], disp_size[1] - point[1]
 
+#進化の輪を描画するために角度回転したときの座標を算出する
+def cordinate_rotate(point, d):
+    rad = math.radians(d)
+    rotated_x = point[0] * math.cos(rad) - point[1] * math.sin(rad)
+    rotated_y = point[0] * math.sin(rad) + point[1] * math.cos(rad)
+    return rotated_x, rotated_y
+
 def draw_title():
     #フォントの設定
     font = pygame.font.SysFont(None, 60)
@@ -229,6 +236,20 @@ def collision_handler(space, balls, collide):
     handler.post_solve = collide
     return handler
          
+class Circle(object):
+    def __init__(self, x, y, color, radius):
+        self.x = x
+        self.y = y
+        self.color = color
+        self.radius = radius
+    def draw(self):
+        pygame.draw.circle(
+            display,
+            self.color,
+            coordinate_trans((self.x, self.y)),
+            self.radius
+        )
+
 class Field():
     def __init__(self, tlx, tly, brx, bry):
         self.tlx = tlx  #左上のx座標
@@ -297,6 +318,8 @@ class Field():
         shape.friction = 0.9  #摩擦
         space.add(shape, body)  #スペースに追加
 
+
+
 #ゲーム実行メソッド(main)
 def game():
     running = True
@@ -329,6 +352,27 @@ def game():
 
     #同じball衝突の処理
     collision_handler(space, balls, collide) 
+    #進化の輪の定義
+    cx, cy = 170, 600 #輪の位置
+    ring_of_balls = [
+        Circle(cx, cy, color_01, radius_01),
+        Circle(cx, cy, color_02, radius_01),
+        Circle(cx, cy, color_03, radius_01),
+        Circle(cx, cy, color_04, radius_01),
+        Circle(cx, cy, color_05, radius_01),
+        Circle(cx, cy, color_06, radius_01),
+        Circle(cx, cy, color_07, radius_01),
+        Circle(cx, cy, color_08, radius_01),
+        Circle(cx, cy, color_09, radius_01),
+        Circle(cx, cy, color_10, radius_01),
+        Circle(cx, cy, color_11, radius_01),
+    ]
+    for i, ball in enumerate(ring_of_balls):
+        d = -30 + (-30) * i
+        x, y = cordinate_rotate((0, 100), d)
+        ball.x += x
+        ball.y += y
+        pass
 
     #ゲーム開始
     while(True):
@@ -365,6 +409,9 @@ def game():
         display.fill(BG)
         #枠を描画
         field.draw()
+        #進化の輪描画
+        for ball in ring_of_balls:
+            ball.draw()
 
         #フィールドのBallを描画
         for ball in balls:
