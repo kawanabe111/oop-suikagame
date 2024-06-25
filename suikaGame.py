@@ -81,7 +81,6 @@ def draw_title():
     display.blit(title_text, title_rect)
     display.blit(sub_text, sub_rect)
 
-
 class Ball(object):
     def __init__(self, x, y, color, radius, mass, collision_type):
         self.color = color #色
@@ -236,7 +235,7 @@ def collision_handler(space, balls, collide):
     handler.post_solve = collide
     return handler
          
-class Circle(object):
+class RingBall(object):
     def __init__(self, x, y, color, radius):
         self.x = x
         self.y = y
@@ -249,6 +248,21 @@ class Circle(object):
             coordinate_trans((self.x, self.y)),
             self.radius
         )
+
+class CurrentBall(RingBall):
+    def __init__(self, x, y, color, radius, start, stop):
+        super().__init__(x, y, color, radius)
+        self.dist = 2
+        self.start = start
+        self.stop = stop
+    def move_ball(self):
+        mouse_x, _ = pygame.mouse.get_pos()
+        if mouse_x < self.start:
+            self.x = self.start
+        elif mouse_x > self.stop:
+            self.x = self.stop
+        else:
+            self.x = mouse_x
 
 class Field():
     def __init__(self, tlx, tly, brx, bry):
@@ -318,7 +332,28 @@ class Field():
         shape.friction = 0.9  #摩擦
         space.add(shape, body)  #スペースに追加
 
-
+class NextBall(RingBall):
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.create_ball()
+    def create_ball(self):
+        r = random.randint(1, 5)
+        if(r == 1):
+            self.color = color_01
+            self.radius = radius_01
+        elif(r == 2):
+            self.color = color_02
+            self.radius = radius_02
+        elif(r == 3):
+            self.color = color_03
+            self.radius = radius_03
+        elif(r == 4):
+            self.color = color_04
+            self.radius = radius_04
+        elif(r == 5):
+            self.color = color_05
+            self.radius = radius_05
 
 #ゲーム実行メソッド(main)
 def game():
@@ -352,20 +387,20 @@ def game():
 
     #同じball衝突の処理
     collision_handler(space, balls, collide) 
-    #進化の輪の定義
+    #進化の輪の変数
     cx, cy = 170, 600 #輪の位置
     ring_of_balls = [
-        Circle(cx, cy, color_01, radius_01),
-        Circle(cx, cy, color_02, radius_01),
-        Circle(cx, cy, color_03, radius_01),
-        Circle(cx, cy, color_04, radius_01),
-        Circle(cx, cy, color_05, radius_01),
-        Circle(cx, cy, color_06, radius_01),
-        Circle(cx, cy, color_07, radius_01),
-        Circle(cx, cy, color_08, radius_01),
-        Circle(cx, cy, color_09, radius_01),
-        Circle(cx, cy, color_10, radius_01),
-        Circle(cx, cy, color_11, radius_01),
+        RingBall(cx, cy, color_01, radius_01),
+        RingBall(cx, cy, color_02, radius_01),
+        RingBall(cx, cy, color_03, radius_01),
+        RingBall(cx, cy, color_04, radius_01),
+        RingBall(cx, cy, color_05, radius_01),
+        RingBall(cx, cy, color_06, radius_01),
+        RingBall(cx, cy, color_07, radius_01),
+        RingBall(cx, cy, color_08, radius_01),
+        RingBall(cx, cy, color_09, radius_01),
+        RingBall(cx, cy, color_10, radius_01),
+        RingBall(cx, cy, color_11, radius_01),
     ]
     for i, ball in enumerate(ring_of_balls):
         d = -30 + (-30) * i
@@ -374,37 +409,48 @@ def game():
         ball.y += y
         pass
 
+    #currentBallの宣言
+    current_ball = CurrentBall(
+        tlx + (brx - tlx) / 2,  # フィールド中央
+        tly + radius_06,        # フィールド上端からボール6半径分上
+        color_01,
+        radius_01,
+        tlx + radius_06,        # フィールド左端からボール6半径分内側
+        brx - radius_06         # フィールド右端からボール6半径分内側
+    )
+    next_ball = NextBall(cx, cx)  # サンプルボールの上方に表示
+
     #ゲーム開始
     while(True):
         for event in pygame.event.get():
             if(event.type == pygame.QUIT):
                 return
-            if(event.type == pygame.MOUSEBUTTONDOWN):
-                x, y = coordinate_trans(event.pos)
-                r = random.randint(1, 11)
-                if(r == 1):
-                    ball = Ball01(x, y)
-                elif(r == 2):
-                    ball = Ball02(x, y)
-                elif(r == 3):
-                    ball = Ball03(x, y)
-                elif(r == 4):
-                    ball = Ball04(x, y)
-                elif(r == 5):
-                    ball = Ball05(x, y)
-                elif(r == 6):
-                    ball = Ball06(x, y)
-                elif(r == 7):
-                    ball = Ball07(x, y)
-                elif(r == 8):
-                    ball = Ball08(x, y)
-                elif(r == 9):
-                    ball = Ball09(x, y)
-                elif(r == 10):
-                    ball = Ball10(x, y)
-                elif(r == 11):
-                    ball = Ball11(x, y)
-                balls.append(ball)
+            # if(event.type == pygame.MOUSEBUTTONDOWN):
+            #     x, y = coordinate_trans(event.pos)
+            #     r = random.randint(1, 11)
+            #     if(r == 1):
+            #         ball = Ball01(x, y)
+            #     elif(r == 2):
+            #         ball = Ball02(x, y)
+            #     elif(r == 3):
+            #         ball = Ball03(x, y)
+            #     elif(r == 4):
+            #         ball = Ball04(x, y)
+            #     elif(r == 5):
+            #         ball = Ball05(x, y)
+            #     elif(r == 6):
+            #         ball = Ball06(x, y)
+            #     elif(r == 7):
+            #         ball = Ball07(x, y)
+            #     elif(r == 8):
+            #         ball = Ball08(x, y)
+            #     elif(r == 9):
+            #         ball = Ball09(x, y)
+            #     elif(r == 10):
+            #         ball = Ball10(x, y)
+            #     elif(r == 11):
+            #         ball = Ball11(x, y)
+            #     balls.append(ball)
         #背景の色
         display.fill(BG)
         #枠を描画
@@ -416,6 +462,12 @@ def game():
         #フィールドのBallを描画
         for ball in balls:
             ball.draw()
+
+        current_ball.draw()
+        current_ball.move_ball()
+
+        #
+        next_ball.draw()
 
         #画面更新
         pygame.display.update()
