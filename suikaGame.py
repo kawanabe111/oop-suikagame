@@ -158,9 +158,9 @@ def collide(arbiter,space,data):
     if(a_ct != b_ct):
         #もし異なるBall同士の衝突の場合
         return
-    if(a_ct == 11 or b_ct == 11):
-        #Ball11同士の衝突の場合
-        return
+    # if(a_ct == 11 or b_ct == 11):
+    #     #Ball11同士の衝突の場合
+    #     return
     #衝突した座標を算出
     a_x,a_y = a.body.position
     b_x,b_y = b.body.position
@@ -172,51 +172,62 @@ def collide(arbiter,space,data):
         if(ball.shape == a or ball.shape == b):
             balls_to_remove.append(ball)
             #Ballを削除する
-            for ball in balls_to_remove:
-                space.remove(ball.shape,ball.body)
-                data["balls"].remove(ball)
-                #Ballの作成とスコアの更新
-                if(a_ct == 1 and b_ct == 1):
-                    #もしBall01同士の衝突ならBall02を作成かつスコアを1更新
-                    data["balls"].append(Ball02(x,y))
-                    data["score"] += 1
-                elif(a_ct == 2 and b_ct == 2):
-                    #もしBall02同士の衝突ならBall03を作成かつスコアを3更新
-                    data["balls"].append(Ball03(x,y))
-                    data["score"] += 3
-                elif(a_ct == 3 and b_ct == 3):
-                    #もしBall03同士の衝突ならBall04を作成かつスコアを6更新
-                    data["balls"].append(Ball04(x,y))
-                    data["score"] += 6
-                elif(a_ct == 4 and b_ct == 4):
-                    #もしBall04同士の衝突ならBall05を作成かつスコアを10更新
-                    data["balls"].append(Ball05(x,y))
-                    data["score"] += 10
-                elif(a_ct == 5 and b_ct == 5):
-                     #もしBall05同士の衝突ならBall05を作成かつスコアを15更新
-                    data["balls"].append(Ball06(x,y))
-                    data["score"] += 15
-                elif(a_ct == 6 and b_ct == 6):
-                     #もしBall06同士の衝突ならBall05を作成かつスコアを21更新
-                    data["balls"].append(Ball07(x,y))
-                    data["score"] += 21
-                elif(a_ct == 7 and b_ct == 7):
-                    #もしBall07同士の衝突ならBall05を作成かつスコアを28更新
-                    data["balls"].append(Ball08(x,y))
-                    data["score"] += 28
-                elif(a_ct == 8 and b_ct == 8):
-                    #もしBall08同士の衝突ならBall05を作成かつスコアを36更新
-                    data["balls"].append(Ball09(x,y))
-                    data["score"] += 36
-                elif(a_ct == 9 and b_ct == 9):
-                     #もしBall09同士の衝突ならBall10を作成かつスコアを45更新
-                    data["balls"].append(Ball10(x,y))
-                    data["score"] += 45
-                elif(a_ct == 10 and b_ct == 10):
-                     #もしBall10同士の衝突ならBall11を作成かつスコアを55更新
-                    data["balls"].append(Ball11(x,y))
-                    data["score"] += 55
-                pass
+    for ball in balls_to_remove:
+        space.remove(ball.shape,ball.body)
+        data["balls"].remove(ball)
+        #Ballの作成とスコアの更新
+    if(a_ct == 1 and b_ct == 1):
+        #もしBall01同士の衝突ならBall02を作成かつスコアを1更新
+        data["balls"].append(Ball02(x,y))
+        data["score"] += 1
+    elif(a_ct == 2 and b_ct == 2):
+        #もしBall02同士の衝突ならBall03を作成かつスコアを3更新
+        data["balls"].append(Ball03(x,y))
+        data["score"] += 3
+    elif(a_ct == 3 and b_ct == 3):
+        #もしBall03同士の衝突ならBall04を作成かつスコアを6更新
+        data["balls"].append(Ball04(x,y))
+        data["score"] += 6
+    elif(a_ct == 4 and b_ct == 4):
+        #もしBall04同士の衝突ならBall05を作成かつスコアを10更新
+        data["balls"].append(Ball05(x,y))
+        data["score"] += 10
+    elif(a_ct == 5 and b_ct == 5):
+            #もしBall05同士の衝突ならBall05を作成かつスコアを15更新
+        data["balls"].append(Ball06(x,y))
+        data["score"] += 15
+    elif(a_ct == 6 and b_ct == 6):
+            #もしBall06同士の衝突ならBall05を作成かつスコアを21更新
+        data["balls"].append(Ball07(x,y))
+        data["score"] += 21
+    elif(a_ct == 7 and b_ct == 7):
+        #もしBall07同士の衝突ならBall05を作成かつスコアを28更新
+        data["balls"].append(Ball08(x,y))
+        data["score"] += 28
+    elif(a_ct == 8 and b_ct == 8):
+        #もしBall08同士の衝突ならBall05を作成かつスコアを36更新
+        data["balls"].append(Ball09(x,y))
+        data["score"] += 36
+    elif(a_ct == 9 and b_ct == 9):
+            #もしBall09同士の衝突ならBall10を作成かつスコアを45更新
+        data["balls"].append(Ball10(x,y))
+        data["score"] += 45
+    elif(a_ct == 10 and b_ct == 10):
+            #もしBall10同士の衝突ならBall11を作成かつスコアを55更新
+        data["balls"].append(Ball11(x,y))
+        data["score"] += 55
+    elif(a_ct == 11 and b_ct == 11):
+            #もしBall11同士の衝突ならスコア更新だけ
+        # data["balls"].append(Ball11(x,y))
+        data["score"] += 70
+    pass
+
+def collision_handler(space, balls, collide):
+    handler = space.add_default_collision_handler()
+    handler.data["balls"] = balls
+    handler.data["score"] = 0
+    handler.post_solve = collide
+    return handler
          
 class Field():
     def __init__(self, tlx, tly, brx, bry):
@@ -315,6 +326,9 @@ def game():
 
     #フィールド上にあるBallを納める
     balls = []
+
+    #同じball衝突の処理
+    collision_handler(space, balls, collide) 
 
     #ゲーム開始
     while(True):
