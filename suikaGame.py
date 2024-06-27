@@ -263,6 +263,18 @@ class CurrentBall(RingBall):
             self.x = self.stop
         else:
             self.x = mouse_x
+    def get_ball(self):
+        if(self.radius == radius_01):
+            ball = Ball01(self.x, self.y)
+        elif(self.radius == radius_02):
+            ball = Ball02(self.x, self.y)
+        elif(self.radius == radius_03):
+            ball = Ball03(self.x, self.y)
+        elif(self.radius == radius_04):
+            ball = Ball04(self.x, self.y)
+        elif(self.radius == radius_05):
+            ball = Ball05(self.x, self.y)
+        return ball
 
 class Field():
     def __init__(self, tlx, tly, brx, bry):
@@ -425,32 +437,16 @@ def game():
         for event in pygame.event.get():
             if(event.type == pygame.QUIT):
                 return
-            # if(event.type == pygame.MOUSEBUTTONDOWN):
-            #     x, y = coordinate_trans(event.pos)
-            #     r = random.randint(1, 11)
-            #     if(r == 1):
-            #         ball = Ball01(x, y)
-            #     elif(r == 2):
-            #         ball = Ball02(x, y)
-            #     elif(r == 3):
-            #         ball = Ball03(x, y)
-            #     elif(r == 4):
-            #         ball = Ball04(x, y)
-            #     elif(r == 5):
-            #         ball = Ball05(x, y)
-            #     elif(r == 6):
-            #         ball = Ball06(x, y)
-            #     elif(r == 7):
-            #         ball = Ball07(x, y)
-            #     elif(r == 8):
-            #         ball = Ball08(x, y)
-            #     elif(r == 9):
-            #         ball = Ball09(x, y)
-            #     elif(r == 10):
-            #         ball = Ball10(x, y)
-            #     elif(r == 11):
-            #         ball = Ball11(x, y)
-            #     balls.append(ball)
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+            # マウスボタンが押されたときの処理
+                if event.button == 1:  # 左クリック
+                # Drop Current Circle
+                    balls.append(current_ball.get_ball())
+                # Update Current Circle
+                    current_ball.color = next_ball.color
+                    current_ball.radius = next_ball.radius
+                # Update Next Circle
+                    next_ball.create_ball()
         #背景の色
         display.fill(BG)
         #枠を描画
