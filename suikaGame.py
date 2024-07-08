@@ -8,7 +8,7 @@ FPS = 100 #フレームレート
 
 #色の定義
 BLACK = (0, 0, 0)
-BG = (245, 222, 179)
+BG = (255, 255, 220)
 WHITE = (255, 255, 255)
 color_01 = (255,   0,   0)
 color_02 = (255, 100, 100)
@@ -29,11 +29,11 @@ radius_03 = 20
 radius_04 = 25
 radius_05 = 30
 radius_06 = 35
-radius_07 = 40
-radius_08 = 45
-radius_09 = 50
-radius_10 = 55
-radius_11 = 60
+radius_07 = 50
+radius_08 = 55
+radius_09 = 60
+radius_10 = 65
+radius_11 = 75
 
 
 #pygame初期化
@@ -81,6 +81,21 @@ def draw_title():
     display.blit(title_text, title_rect)
     display.blit(sub_text, sub_rect)
 
+def draw_gameover():
+    font = pygame.font.SysFont(None, 60)
+    game_over_text = font.render("Game Over", True, BLACK)
+    game_over_rect = game_over_text.get_rect(
+        midbottom=(disp_size[0]/2, disp_size[1]/2)
+    )
+    display.blit(game_over_text, game_over_rect)
+def draw_score(tlx, cx, handler):
+        font = pygame.font.SysFont(None, 60)
+        
+
+        # Draw Score Text
+        score_text = font.render("Score: {:,}".format(handler.data["score"]), True, BLACK)
+        score_rect = (500, 170)
+        display.blit(score_text, score_rect)
 class Ball(object):
     def __init__(self, x, y, color, radius, mass, collision_type):
         self.color = color #色
@@ -367,6 +382,14 @@ class NextBall(RingBall):
             self.color = color_05
             self.radius = radius_05
 
+#ゲームオーバーかを確認する
+def is_game_over(balls, y):
+    for ball in balls:
+        ball_top = ball.body.position[1] + ball.shape.radius #各ボールのy方向座標
+        if(ball_top >= y):
+            return True
+    return False
+
 #ゲーム実行メソッド(main)
 def game():
     running = True
@@ -398,7 +421,7 @@ def game():
     balls = []
 
     #同じball衝突の処理
-    collision_handler(space, balls, collide) 
+    handler = collision_handler(space, balls, collide) 
     #進化の輪の変数
     cx, cy = 170, 600 #輪の位置
     ring_of_balls = [
@@ -432,6 +455,10 @@ def game():
     )
     next_ball = NextBall(cx, cx)  # サンプルボールの上方に表示
 
+    #ゲームオーバーフラグ
+    GAMEOVERFLAG = False
+    CHECKGAMEOVER = pygame.USEREVENT + 1
+
     #ゲーム開始
     while(True):
         for event in pygame.event.get():
@@ -447,6 +474,11 @@ def game():
                     current_ball.radius = next_ball.radius
                 # Update Next Circle
                     next_ball.create_ball()
+                pygame.time.set_timer(CHECKGAMEOVER, 1000)#1秒後にチェックゲームオーバーイベントをよぶ
+            if(event.type==CHECKGAMEOVER):
+                GAMEOVERFLAG = is_game_over(balls, tly)
+                print(GAMEOVERFLAG)
+
         #背景の色
         display.fill(BG)
         #枠を描画
@@ -454,16 +486,22 @@ def game():
         #進化の輪描画
         for ball in ring_of_balls:
             ball.draw()
-
+        
         #フィールドのBallを描画
         for ball in balls:
             ball.draw()
 
         current_ball.draw()
         current_ball.move_ball()
-
-        #
+      
+        #ネクストボール更新
         next_ball.draw()
+        if(GAMEOVERFLAG):
+            draw_gameover()
+            pygame.display.update()
+            pygame.time.wait(2000)
+            game()
+        draw_score(tlx, cx, handler)
 
         #画面更新
         pygame.display.update()
