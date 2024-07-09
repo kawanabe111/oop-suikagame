@@ -105,7 +105,7 @@ class Ball(object):
         self.shape = pymunk.Circle(self.body, radius) #形状の指定
         self.shape.collision_type = collision_type #衝突時の物体識別
         self.shape.density = 1 #密度
-        self.shape.elasticity = 0.5 #弾性
+        self.shape.elasticity = 0.1 #弾性
         self.shape.friction = 0.5 #摩擦係数
         space.add(self.body, self.shape) #spaceという物理空間に追加
     def draw(self):
@@ -477,7 +477,7 @@ def game():
                 pygame.time.set_timer(CHECKGAMEOVER, 1000)#1秒後にチェックゲームオーバーイベントをよぶ
             if(event.type==CHECKGAMEOVER):
                 GAMEOVERFLAG = is_game_over(balls, tly)
-                print(GAMEOVERFLAG)
+                # print(GAMEOVERFLAG)
 
         #背景の色
         display.fill(BG)
@@ -499,6 +499,9 @@ def game():
         if(GAMEOVERFLAG):
             draw_gameover()
             pygame.display.update()
+            for ball in balls:
+                space.remove(ball.shape, ball.body)
+            balls.clear()
             pygame.time.wait(2000)
             game()
         draw_score(tlx, cx, handler)
@@ -507,8 +510,6 @@ def game():
         pygame.display.update()
         clock.tick(FPS)
         space.step(1/FPS)
-
-
 
 game()
 pygame.quit()
